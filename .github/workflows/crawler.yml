@@ -1,0 +1,49 @@
+name: Crawler
+
+on:
+  schedule:
+    - cron: '00 16 * * *'
+  workflow_dispatch:
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Use Python 3.x
+        uses: actions/setup-python@v2.2.2
+        
+      - name: Cache pip
+        uses: actions/cache@v2.1.6
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install -r requirements.txt
+      - name: Set Timezone
+        uses: zcong1993/setup-timezone@v1.1.1
+        with: 
+          timezone: 'Asia/Shanghai'
+
+      - name: Crawl
+        run: python3 BingCrawler.py
+
+      - name: Commit
+        run: |
+          git config --global user.email 393893729@qq.com
+          git config --global user.name WangZhiYao
+          git add .
+          git commit -m "Updated: `date +'%Y-%m-%d %H:%M:%S'`" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: master
