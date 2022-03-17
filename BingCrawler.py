@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 BING_API_URL = 'https://cn.bing.com/hp/api/model'
 BING_API_PARAMS = {'mkt': 'zh-CN'}
+BING_API_HEADERS = {'accept-language': 'zh-CN,zh;'}
 
 TZ_SHANGHAI = timezone(timedelta(hours=8), name='Asia/Shanghai')
 TODAY = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(TZ_SHANGHAI)
@@ -64,7 +65,7 @@ class CrawlerException(Exception):
 
 @retry(retry=retry_if_exception_type(CrawlerException), stop=stop_after_attempt(3), wait=wait_fixed(5), )
 def get_hp_image_archive():
-    response = requests.get(BING_API_URL, params=BING_API_PARAMS)
+    response = requests.get(BING_API_URL, params=BING_API_PARAMS, headers=BING_API_HEADERS)
     response.raise_for_status()
     hp_image_archive = json.loads(response.text, object_hook=lambda d: SimpleNamespace(**d))
     check_image_updated(hp_image_archive)
