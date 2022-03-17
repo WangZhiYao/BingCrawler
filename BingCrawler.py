@@ -4,16 +4,16 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
+import requests
 from sqlalchemy import Column, String, Integer, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-import requests
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y.%m.%d %H:%M:%S')
 
 BING_API_URL = 'https://cn.bing.com/hp/api/model'
+BING_API_PARAMS = {'mkt': 'zh-CN'}
 
 TZ_SHANGHAI = timezone(timedelta(hours=8), name='Asia/Shanghai')
 TODAY = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(TZ_SHANGHAI)
@@ -31,18 +31,20 @@ class BingImage(Base):
     year = Column(Integer)
     month = Column(Integer)
     day = Column(Integer)
-    copyright = Column(String)
+    headline = Column(String)
     title = Column(String)
+    copyright = Column(String)
     description = Column(String)
     location = Column(String)
     image = Column(String)
 
-    def __init__(self, year, month, day, copyright, title, description, location, image):
+    def __init__(self, year, month, day, headline, title, copyright,  description, location, image):
         self.year = year
         self.month = month
         self.day = day
-        self.copyright = copyright
+        self.headline = headline
         self.title = title
+        self.copyright = copyright
         self.description = description
         self.location = location
         self.image = image
@@ -62,7 +64,7 @@ class CrawlerException(Exception):
 
 @retry(retry=retry_if_exception_type(CrawlerException), stop=stop_after_attempt(3), wait=wait_fixed(5), )
 def get_hp_image_archive():
-    response = requests.get(BING_API_URL)
+    response = requests.get(BING_API_URL, params=BING_API_PARAMS)
     response.raise_for_status()
     hp_image_archive = json.loads(response.text, object_hook=lambda d: SimpleNamespace(**d))
     check_image_updated(hp_image_archive)
@@ -104,8 +106,9 @@ def insert_to_db(hp_image_archive):
             date.year,
             date.month,
             date.day,
-            conv(image_content.Copyright),
+            conv(image_content.Headline),
             conv(image_content.Title),
+            conv(image_content.Copyright),
             conv(image_content.Description),
             conv(None),
             image_file_name
