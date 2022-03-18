@@ -82,6 +82,10 @@ def download_image(hp_image_archive):
     try:
         image = hp_image_archive.MediaContents[0].ImageContent.Image
         image_url = image.Url.replace('1920x1080', 'UHD')
+
+        if image_url.startswith('https://') is False:
+            image_url = 'https://s.cn.bing.net/' + image_url
+
         image_file_name = image_url.split('&')[0].split('=')[1].replace('OHR.', '').replace('1920x1080', 'UHD')
         response = requests.get(image_url, stream=True)
         response.raise_for_status()
