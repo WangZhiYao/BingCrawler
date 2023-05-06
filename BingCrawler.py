@@ -86,7 +86,7 @@ def download_image(hp_image_archive):
         if image_url.startswith('https://') is False:
             image_url = 'https://s.cn.bing.net/' + image_url
 
-        image_file_name = image_url.split('&')[0].split('=')[1].replace('OHR.', '').replace('1920x1080', 'UHD')
+        image_file_name = image_url.split('&')[0].split('=')[1].replace('OHR.', '').replace('1920x1080', 'UHD').replace('webp', 'jpg')
         response = requests.get(image_url, stream=True)
         response.raise_for_status()
 
@@ -104,7 +104,7 @@ def insert_to_db(hp_image_archive):
         image_content = hp_image_archive.MediaContents[0].ImageContent
         image = image_content.Image
         image_url = image.Url.replace('1920x1080', 'UHD')
-        image_file_name = image_url.split('&')[0].split('=')[1].replace('OHR.', '').replace('1920x1080', 'UHD')
+        image_file_name = image_url.split('&')[0].split('=')[1].replace('OHR.', '').replace('1920x1080', 'UHD').replace('webp', 'jpg')
         date = datetime.strptime(image_content.TriviaId.split('_')[1], '%Y%m%d')
         conv = lambda s: s or None
         bing_image = BingImage(
