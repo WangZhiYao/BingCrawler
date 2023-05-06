@@ -81,7 +81,7 @@ def check_image_updated(hp_image_archive):
 def download_image(hp_image_archive):
     try:
         image = hp_image_archive.MediaContents[0].ImageContent.Image
-        image_url = image.Url.replace('1920x1080', 'UHD')
+        image_url = image.Url.replace('1920x1080', 'UHD').replace('webp', 'jpg')
 
         if image_url.startswith('https://') is False:
             image_url = 'https://s.cn.bing.net/' + image_url
@@ -103,7 +103,7 @@ def insert_to_db(hp_image_archive):
     try:
         image_content = hp_image_archive.MediaContents[0].ImageContent
         image = image_content.Image
-        image_url = image.Url.replace('1920x1080', 'UHD')
+        image_url = image.Url.replace('1920x1080', 'UHD').replace('webp', 'jpg')
         image_file_name = image_url.split('&')[0].split('=')[1].replace('OHR.', '').replace('1920x1080', 'UHD').replace('webp', 'jpg')
         date = datetime.strptime(image_content.TriviaId.split('_')[1], '%Y%m%d')
         conv = lambda s: s or None
